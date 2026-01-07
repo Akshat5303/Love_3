@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>A Surprise For You</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f3f4f6;
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 20px 20px;
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden;
+            touch-action: none; /* Disables scrolling */
+        }
+
+        .card-container {
+            position: relative;
+            width: 300px;
+            height: 400px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            background: white;
+        }
+
+        /* The Hidden Layer (Bottom) */
+        .secret-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(to bottom, #fff1eb 0%, #ace0f9 100%);
+            z-index: 1;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .secret-content h2 {
+            color: #d946ef; /* Pink Text */
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.5rem;
+            margin: 0;
+        }
+
+        .secret-content p {
+            color: #555;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        .emoji-decoration {
+            font-size: 3rem;
+            margin: 15px 0;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* The Scratch Layer (Canvas) */
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            cursor: pointer;
+            border-radius: 20px; /* Matches container */
+            transition: opacity 1s;
+        }
+
+        .instruction {
+            position: absolute;
+            bottom: -50px;
+            width: 100%;
+            text-align: center;
+            color: #888;
+            font-size: 0.9rem;
+            animation: fadeIn 2s forwards;
+        }
+        
+        @keyframes fadeIn {
+            to { bottom: 20px; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="card-container" id="card">
+        
+        <div class="secret-content">
+            <div class="emoji-decoration">✨</div>
+            <h2>Surprise!</h2>
+            <p>
+                I think you are amazing.<br>
+                Keep smiling! :)
+            </p>
+            <div class="emoji-decoration" style="animation-delay: 0.5s">💖</div>
+        </div>
+
+        <canvas id="scratchCanvas"></canvas>
+    </div>
+
+    <div class="instruction">Rub the screen to reveal...</div>
+
+    <script>
+        const canvas = document.getElementById('scratchCanvas');
+        const ctx = canvas.getContext('2d');
+        const card = document.getElementById('card');
+        
+        // Set canvas size to match the card exactly
+        canvas.width = card.offsetWidth;
+        canvas.height = card.offsetHeight;
+
+        // 1. CREATE THE COVER IMAGE (Gradient + Text)
+        function initCover() {
+            // Background Gradient for the scratch layer
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#8EC5FC');
+            gradient.addColorStop(1, '#E0C3FC');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Add text "Scratch Me"
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 24px Poppins";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("Scratch Here!", canvas.width/2, canvas.height/2);
+            
+            // Add some decorative circles
+            ctx.fillStyle = "rgba(255,255,255,0.2)";
+            ctx.beginPath();
+            ctx.arc(30, 30, 50, 0, Math.PI*2);
+            ctx.fill();
+        }
+
+        initCover();
+
+        // 2. THE SCRATCHING LOGIC
+        let isDrawing = false;
+
+        function scratch(x, y) {
+            ctx.globalCompositeOperation = 'destination-out'; // This makes the "brush" erase
+            ctx.beginPath();
+            ctx.arc(x, y, 25, 0, Math.PI * 2); // Brush size: 25px radius
+            ctx.fill();
+        }
+
+        // MOUSE EVENTS (Computer)
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            scratch(e.offsetX, e.offsetY);
+        });
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) scratch(e.offsetX, e.offsetY);
+        });
+        window.addEventListener('mouseup', () => isDrawing = false);
+
+        // TOUCH EVENTS (Mobile)
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Stop scrolling
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            scratch(touch.clientX - rect.left, touch.clientY - rect.top);
+        }, {passive: false});
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Stop scrolling!!!!
+            if (isDrawing) {
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                scratch(touch.clientX - rect.left, touch.clientY - rect.top);
+            }
+        }, {passive: false});
+        
+        window.addEventListener('touchend', () => isDrawing = false);
+
+    </script>
+</body>
+</html>
